@@ -1,0 +1,25 @@
+{
+  "routes": [
+    {
+      "route": "/articles/*",
+      "serve": "/server/entry.mjs",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/articles/tag/*",
+      "serve": "/server/entry.mjs",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/*",
+      "serve": "/server/entry.mjs",
+      "allowedRoles": ["anonymous"]
+    }
+  ],
+  "platformErrorOverrides": [
+    {
+      "errorType": "NotFound",
+      "serve": "/server/entry.mjs"
+    }
+  ]
+}

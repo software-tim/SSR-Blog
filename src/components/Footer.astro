@@ -1,0 +1,87 @@
+---
+// src/components/Footer.astro
+
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+const currentYear = new Date().getFullYear();
+
+const navSections: FooterSection[] = [
+  {
+    title: "Content",
+    links: [
+      { label: "Articles", href: "/articles" },
+      { label: "Categories", href: "/categories" },
+      { label: "Tags", href: "/tags" },
+      { label: "Popular", href: "/popular" }
+    ]
+  },
+  {
+    title: "About",
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Contact", href: "/contact" },
+      { label: "Privacy Policy", href: "/privacy" }
+    ]
+  },
+  {
+    title: "Follow",
+    links: [
+      { label: "Twitter", href: "https://twitter.com/yourblog" },
+      { label: "GitHub", href: "https://github.com/yourblog" },
+      { label: "RSS Feed", href: "/rss.xml" }
+    ]
+  }
+];
+---
+
+<footer class="bg-white border-t border-gray-200 mt-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <!-- Brand and description -->
+      <div class="col-span-1">
+        <a href="/">
+          <img src="/images/logo.png" alt="Sinclair-AI Logo" class="h-20 w-60 rounded-lg" />
+        </a>
+        <p class="mt-2 text-sm text-gray-500">
+          Sharing ideas, stories, and insights about technology, AI, music & more ...
+        </p>
+      </div>
+      
+      <!-- Navigation sections -->
+      {navSections.map((section: FooterSection) => {
+        return (
+          <div>
+            <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">
+              {section.title}
+            </h3>
+            <ul class="mt-4 space-y-4">
+              {section.links.map((link: FooterLink) => {
+                return (
+                  <li>
+                    <a href={link.href} class="text-base text-gray-500 hover:text-indigo-600">
+                      {link.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+    
+    <div class="mt-12 border-t border-gray-200 pt-8">
+      <p class="text-base text-gray-400 text-center">
+        &copy; {currentYear} Sinclair-AI. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>

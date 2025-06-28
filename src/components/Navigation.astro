@@ -1,0 +1,117 @@
+---
+// src/components/Navigation.astro
+const currentPath = Astro.url.pathname;
+
+// Define explicit interface for navigation items
+interface NavItem {
+  name: string;
+  path: string;
+}
+
+const navItems: NavItem[] = [
+  { name: 'Home', path: '/' },
+  { name: 'Articles', path: '/articles' },
+  { name: 'Categories', path: '/categories' },
+  { name: 'Tags', path: '/tags' },
+  { name: 'About', path: '/about' }
+];
+---
+
+<nav class="bg-gray-200 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-22">
+    <!-- Logo/Brand -->
+      <div class="flex-shrink-0 flex items-center">
+        <a href="/">
+          <!--<img src="/images/logo.png" alt="Sinclair-AI Logo" class="h-20 w-60 object-contain rounded-lg" />  -->
+           <img src="/images/logo.png" alt="Sinclair-AI Logo" class="h-20 w-60 rounded-lg pt-[1px] pb-[1px]" />
+        </a>
+      </div>
+
+      
+      <!-- Desktop Navigation -->
+      <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+        {navItems.map((item: NavItem) => (
+          <a 
+            href={item.path}
+            class={`${currentPath === item.path ? 
+              'border-indigo-500 text-gray-900' : 
+              'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'} 
+              inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+            aria-current={currentPath === item.path ? 'page' : undefined}
+          >
+            {item.name}
+          </a>
+        ))}
+        
+        <!-- Search Button (Desktop) -->
+        <div class="flex items-center">
+          <a 
+            href="/articles/search" 
+            class="text-gray-500 hover:text-gray-700 p-2 rounded-md"
+            aria-label="Search"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Mobile menu button -->
+      <div class="flex items-center sm:hidden">
+        <button type="button" id="mobile-menu-button" class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-expanded="false">
+          <span class="sr-only">Open main menu</span>
+          <!-- Icon when menu is closed -->
+          <svg id="menu-closed-icon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <!-- Icon when menu is open -->
+          <svg id="menu-open-icon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile menu, show/hide based on menu state. -->
+  <div class="sm:hidden hidden" id="mobile-menu">
+    <div class="pt-2 pb-3 space-y-1">
+{navItems.map((item: NavItem) => {
+  return (
+    <a href={item.path} class="menu-item" aria-current={currentPath === item.path ? 'page' : undefined}>
+      {item.name}
+    </a>
+  );
+})}
+      
+      <!-- Search Link (Mobile) -->
+      <a 
+        href="/articles/search" 
+        class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+      >
+        Search
+      </a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // Handle mobile menu toggle
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuOpenIcon = document.getElementById('menu-open-icon');
+  const menuClosedIcon = document.getElementById('menu-closed-icon');
+  
+  if (mobileMenuButton && mobileMenu && menuOpenIcon && menuClosedIcon) {
+    mobileMenuButton.addEventListener('click', () => {
+      const expanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+      
+      mobileMenuButton.setAttribute('aria-expanded', (!expanded).toString());
+      mobileMenu.classList.toggle('hidden');
+      menuOpenIcon.classList.toggle('hidden');
+      menuClosedIcon.classList.toggle('hidden');
+    });
+  }
+</script>

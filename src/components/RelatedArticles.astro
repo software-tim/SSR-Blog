@@ -1,0 +1,66 @@
+---
+// src/components/RelatedArticles.astro
+import ArticleCard from './ArticleCard.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  currentArticle: CollectionEntry<'blog'>;
+  allArticles: CollectionEntry<'blog'>[];
+  maxArticles?: number;
+}
+
+const { currentArticle, allArticles, maxArticles = 3 } = Astro.props;
+
+// Helper function for type safety
+function getTagsFromArticle(article: CollectionEntry<'blog'>): string[] {
+  return Array.isArray(article.data.tags) ? article.data.tags : [];
+}
+
+// Find related articles based on matching tags
+const currentArticleTags = getTagsFromArticle(currentArticle);
+
+const relatedArticles = allArticles
+  .filter(article => {
+    // Not the current article
+    if (article.id === currentArticle.id) return false;
+    
+    // Must have tags
+    const articleTags = getTagsFromArticle(article);
+    if (articleTags.length === 0) return false;
+    
+    // Must have at least one matching tag
+    return articleTags.some(tag => currentArticleTags.includes(tag));
+  })
+  .sort((a, b) => {
+    // Count matching tags for better relevance sorting
+    const aTags = getTagsFromArticle(a);
+    const bTags = getTagsFromArticle(b);
+    
+    const aMatchCount = aTags.filter(tag => 
+      currentArticleTags.includes(tag)
+    ).length;
+    
+    const bMatchCount = bTags.filter(tag => 
+      currentArticleTags.includes(tag)
+    ).length;
+    
+    // Sort by match count first, then by date
+    if (aMatchCount !== bMatchCount) {
+      return bMatchCount - aMatchCount;
+    }
+    
+    return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+  })
+  .slice(0, maxArticles);
+---
+
+{relatedArticles.length > 0 && (
+  <section class="mt-12">
+    <h2 class="text-2xl font-bold mb-6">Related Articles</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {relatedArticles.map((article: CollectionEntry<'blog'>) => (
+        <ArticleCard article={article} />
+      ))}
+    </div>
+  </section>
+)}

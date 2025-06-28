@@ -1,0 +1,83 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+
+// Define type for blog entries
+type BlogEntry = CollectionEntry<'blog'>;
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const entries: BlogEntry[] = await getCollection('blog');
+
+  return entries.map((entry) => ({
+    params: { slug: entry.slug }, // ✅ Must be string
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: BlogEntry;
+}
+
+// ✅ Explicitly cast props to avoid squiggles
+const { entry } = Astro.props as Props;
+
+const { Content } = await entry.render();
+---
+
+<MainLayout title={entry.data.title}>
+  <a href="/articles" class="inline-block mb-6 text-blue-600 hover:underline">
+    &larr; Back to All Articles
+  </a>
+
+<article class="max-w-4xl mx-auto">
+  {entry.data.image && (
+    <img 
+      src={`/images/${entry.data.image.replace(/^\/+/, '')}`}
+      alt={entry.data.title}
+      class="w-full h-64 md:h-96 object-cover rounded-xl mb-8"
+    />
+  )}
+
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">
+      {entry.data.title}
+    </h1>
+
+    <div class="flex items-center text-gray-600 mb-8">
+      <time datetime={new Date(entry.data.pubDate).toISOString()}>
+        {new Date(entry.data.pubDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}
+      </time>
+
+{entry.data.tags && entry.data.tags.length > 0 && (
+  <>
+    <span class="mx-2">•</span>
+    <div class="flex flex-wrap gap-2">
+      {entry.data.tags.map((tag: string) => (
+        <a 
+          href={`/articles/tag/${tag}`} 
+          class="text-blue-600 hover:underline"
+        >
+          #{tag}
+        </a>
+      ))}
+    </div>
+  </>
+)}
+
+    </div>
+
+    <div class="prose prose-lg max-w-none">
+      <Content />
+    </div>
+  </article>
+</MainLayout>
+
+
+
+

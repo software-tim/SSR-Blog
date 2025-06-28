@@ -1,0 +1,174 @@
+---
+// src/pages/tags/index.astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+
+console.log("Rendering tags index page");
+
+// Ultra-defensive function to get tags from an article
+function getSafeTags(article: unknown): string[] {
+  try {
+    // If article doesn't exist or isn't an object, return empty array
+    if (!article || typeof article !== 'object') return [];
+    
+    // Cast to any to access properties safely
+    const articleObj = article as any;
+    
+    // If data doesn't exist or isn't an object, return empty array  
+    if (!articleObj.data || typeof articleObj.data !== 'object') return [];
+    
+    // If tags doesn't exist, return empty array
+    if (!articleObj.data.tags) return [];
+    
+    // If tags isn't an array, return empty array
+    if (!Array.isArray(articleObj.data.tags)) return [];
+    
+    // Filter out non-string tags and empty strings
+    return articleObj.data.tags.filter((tag: unknown) => {
+      if (typeof tag !== 'string') return false;
+      return tag.trim() !== '';
+    });
+  } catch (error) {
+    console.error('Error getting tags from article:', error);
+    return [];
+  }
+}
+
+// Get all articles with defensive error handling
+let allArticles: any[] = [];
+try {
+  allArticles = await getCollection('blog');
+  console.log(`Found ${allArticles.length} total articles`);
+} catch (error) {
+  console.error('Error getting blog collection:', error);
+}
+
+// Extract all tags and count them with defensive approach
+const tagCounts: Record<string, number> = {};
+
+// Process each article
+try {
+  for (let i = 0; i < allArticles.length; i++) {
+    try {
+      const article = allArticles[i];
+      const tags = getSafeTags(article);
+      
+      // Count each tag
+      for (let j = 0; j < tags.length; j++) {
+        try {
+          const tag = tags[j];
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        } catch (error) {
+          console.error(`Error processing tag at index ${j}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error(`Error processing article at index ${i}:`, error);
+    }
+  }
+} catch (error) {
+  console.error('Error processing articles for tags:', error);
+}
+
+// Convert to array and sort by count with defensive approach
+let sortedTags: {tag: string, count: number}[] = [];
+try {
+  // Get tag entries
+  const tagEntries = Object.entries(tagCounts);
+  
+  // Convert to array of objects
+  sortedTags = tagEntries.map(([tag, count]) => ({ tag, count }));
+  
+  // Sort by count (most popular first)
+  sortedTags.sort((a, b) => b.count - a.count);
+  
+  console.log(`Found ${sortedTags.length} unique tags`);
+} catch (error) {
+  console.error('Error sorting tags:', error);
+}
+
+// Debug all found tags
+try {
+  for (let i = 0; i < sortedTags.length; i++) {
+    try {
+      const item = sortedTags[i];
+      console.log(`Tag "${item.tag}" appears ${item.count} times`);
+    } catch (error) {
+      console.error(`Error logging tag at index ${i}:`, error);
+    }
+  }
+} catch (error) {
+  console.error('Error debugging tags:', error);
+}
+
+// Function for tag size classes with defensive approach
+function getTagSizeClass(count: number, maxCount: number): string {
+  try {
+    if (maxCount <= 0) return 'text-base';
+    
+    const ratio = count / maxCount;
+    if (ratio > 0.8) return 'text-2xl font-bold';
+    if (ratio > 0.6) return 'text-xl font-semibold';
+    if (ratio > 0.4) return 'text-lg font-medium';
+    if (ratio > 0.2) return 'text-base';
+    return 'text-sm';
+  } catch (error) {
+    console.error('Error determining tag size class:', error);
+    return 'text-base'; // Fallback
+  }
+}
+
+// Get max tag count with defensive approach
+let maxCount = 1; // Default to 1 to avoid division by zero
+try {
+  if (sortedTags.length > 0) {
+    const counts = sortedTags.map(t => t.count);
+    maxCount = Math.max(...counts);
+  }
+} catch (error) {
+  console.error('Error calculating max count:', error);
+}
+
+// Breadcrumb items
+const breadcrumbItems = [
+  { label: 'Tags', href: '/tags' }
+];
+---
+
+<MainLayout 
+  title="Article Tags" 
+  description="Browse all article tags"
+  breadcrumbItems={breadcrumbItems}
+>
+  <h1 class="text-4xl font-bold mb-8">Tags</h1>
+  
+  {sortedTags.length > 0 ? (
+    <div class="bg-white p-8 rounded-lg shadow-sm">
+      <div class="flex flex-wrap gap-3">
+        {sortedTags.map((item: {tag: string, count: number}) => {
+          try {
+            const tag = item.tag || '';
+            const count = item.count || 0;
+            const sizeClass = getTagSizeClass(count, maxCount);
+            
+            return (
+              <a 
+                href={`/tags/${tag}`}
+                class={`${sizeClass} bg-gray-100 hover:bg-indigo-100 px-4 py-2 rounded-full transition-colors`}
+              >
+                {tag} <span class="text-gray-500">({count})</span>
+              </a>
+            );
+          } catch (error) {
+            console.error('Error rendering tag item:', error);
+            return null;
+          }
+        })}
+      </div>
+    </div>
+  ) : (
+    <div class="bg-gray-50 p-8 rounded-lg text-center">
+      <p class="text-gray-600">No tags found. Add tags to your articles to see them here.</p>
+    </div>
+  )}
+</MainLayout>

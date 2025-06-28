@@ -1,0 +1,372 @@
+---
+// src/pages/categories/[category].astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+
+// Debug the current route with error handling
+try {
+  console.log(`Processing category page with params:`, Astro.params);
+} catch (error) {
+  // Silent catch
+}
+
+// Get the current category from URL with maximum safety
+let currentCategory: string = 'General';
+try {
+  if (Astro.params.category) {
+    try {
+      currentCategory = decodeURIComponent(Astro.params.category);
+    } catch (error) {
+      try {
+        console.error('Error decoding category parameter:', error);
+      } catch (e) {
+        // Silent catch
+      }
+      currentCategory = Astro.params.category;
+    }
+  }
+} catch (error) {
+  try {
+    console.error('Error getting category parameter:', error);
+  } catch (e) {
+    // Silent catch
+  }
+}
+
+try {
+  console.log(`Current category parameter: "${currentCategory}"`);
+} catch (error) {
+  // Silent catch
+}
+
+// Ultra-defensive function to get category from an article with strict typing
+function getArticleCategory(article: unknown): string {
+  try {
+    // Validate article exists and is an object
+    if (!article || typeof article !== 'object') return 'General';
+    
+    // Safe type casting after validation
+    const articleObj = article as any;
+    
+    // First try to get explicit category with thorough validation
+    if (articleObj.data && 
+        typeof articleObj.data === 'object' && 
+        'category' in articleObj.data && 
+        articleObj.data.category !== null &&
+        typeof articleObj.data.category === 'string' && 
+        articleObj.data.category.trim() !== '') {
+      return articleObj.data.category;
+    }
+    
+    // If no category, try to use first tag with thorough validation
+    if (articleObj.data && 
+        typeof articleObj.data === 'object' && 
+        'tags' in articleObj.data &&
+        articleObj.data.tags !== null &&
+        Array.isArray(articleObj.data.tags) && 
+        articleObj.data.tags.length > 0) {
+      
+      // Extract first valid tag
+      for (let i = 0; i < articleObj.data.tags.length; i++) {
+        const tag = articleObj.data.tags[i];
+        if (tag !== null && 
+            tag !== undefined && 
+            typeof tag === 'string' && 
+            tag.trim() !== '') {
+          return tag;
+        }
+      }
+    }
+    
+    // If we reach here, check title for keywords
+    if (articleObj.data && 
+        typeof articleObj.data === 'object' && 
+        'title' in articleObj.data &&
+        articleObj.data.title !== null &&
+        typeof articleObj.data.title === 'string' && 
+        articleObj.data.title.trim() !== '') {
+      
+      // Convert to lowercase for case-insensitive matching
+      const title = articleObj.data.title.toLowerCase();
+      
+      // Check for keywords in title
+      const keywords: [string, string][] = [
+        ['javascript', 'JavaScript'],
+        ['css', 'CSS'],
+        ['html', 'HTML'],
+        ['astro', 'Astro'],
+        ['react', 'React'],
+        ['vue', 'Vue'],
+        ['svelte', 'Svelte'],
+        ['tutorial', 'Tutorials'],
+        ['guide', 'Guides'],
+        ['review', 'Reviews'],
+        // Add more keyword mappings as needed
+      ];
+      
+      for (let i = 0; i < keywords.length; i++) {
+        const [keyword, category] = keywords[i];
+        if (title.includes(keyword)) {
+          return category;
+        }
+      }
+    }
+    
+    // Default category as last resort
+    return 'General';
+  } catch (error) {
+    try {
+      console.error('Error getting article category:', error);
+    } catch (e) {
+      // Silent catch
+    }
+    return 'General';
+  }
+}
+
+// Get all articles with defensive error handling
+let allArticles: any[] = [];
+try {
+  allArticles = await getCollection('blog');
+  try {
+    console.log(`Found ${allArticles.length} total articles`);
+  } catch (e) {
+    // Silent catch
+  }
+} catch (error) {
+  try {
+    console.error('Error getting blog collection:', error);
+  } catch (e) {
+    // Silent catch
+  }
+}
+
+// Filter articles by category with maximum defensive approach
+let categoryArticles: any[] = [];
+try {
+  // We'll use a traditional for loop for better error handling
+  for (let i = 0; i < allArticles.length; i++) {
+    try {
+      const article = allArticles[i];
+      let category: string;
+      
+      try {
+        category = getArticleCategory(article);
+      } catch (error) {
+        try {
+          console.error(`Error getting category for article at index ${i}:`, error);
+        } catch (e) {
+          // Silent catch
+        }
+        continue; // Skip this article on error
+      }
+      
+      // Check if category matches
+      if (category === currentCategory) {
+        categoryArticles.push(article);
+      }
+    } catch (error) {
+      try {
+        console.error(`Error processing article at index ${i} for filtering:`, error);
+      } catch (e) {
+        // Silent catch
+      }
+    }
+  }
+  
+  try {
+    console.log(`Found ${categoryArticles.length} articles in category "${currentCategory}"`);
+  } catch (e) {
+    // Silent catch
+  }
+} catch (error) {
+  try {
+    console.error('Error filtering articles by category:', error);
+  } catch (e) {
+    // Silent catch
+  }
+}
+
+// Sort articles by date with maximally defensive approach
+let sortedArticles: any[] = [];
+try {
+  // Create a safe copy of the array
+  sortedArticles = Array.isArray(categoryArticles) ? [...categoryArticles] : [];
+  
+  // Only attempt to sort if we have articles
+  if (sortedArticles.length > 1) {
+    try {
+      sortedArticles.sort((a: unknown, b: unknown) => {
+        try {
+          // Safe type casting with validation
+          if (!a || typeof a !== 'object' || !b || typeof b !== 'object') return 0;
+          
+          const articleA = a as any;
+          const articleB = b as any;
+          
+          // Safe date extraction with multiple fallbacks
+          let dateA = 0;
+          try {
+            if (articleA.data && 
+                typeof articleA.data === 'object' && 
+                articleA.data.pubDate instanceof Date) {
+              dateA = articleA.data.pubDate.valueOf();
+            } else if (articleA.data && 
+                      typeof articleA.data === 'object' && 
+                      typeof articleA.data.pubDate === 'string') {
+              // Try to parse date string
+              dateA = new Date(articleA.data.pubDate).valueOf();
+            }
+          } catch (error) {
+            try {
+              console.error('Error getting date A:', error);
+            } catch (e) {
+              // Silent catch
+            }
+          }
+          
+          let dateB = 0;
+          try {
+            if (articleB.data && 
+                typeof articleB.data === 'object' && 
+                articleB.data.pubDate instanceof Date) {
+              dateB = articleB.data.pubDate.valueOf();
+            } else if (articleB.data && 
+                      typeof articleB.data === 'object' && 
+                      typeof articleB.data.pubDate === 'string') {
+              // Try to parse date string
+              dateB = new Date(articleB.data.pubDate).valueOf();
+            }
+          } catch (error) {
+            try {
+              console.error('Error getting date B:', error);
+            } catch (e) {
+              // Silent catch
+            }
+          }
+          
+          // NaN check for isValid date
+          if (isNaN(dateA)) dateA = 0;
+          if (isNaN(dateB)) dateB = 0;
+          
+          return dateB - dateA;
+        } catch (error) {
+          try {
+            console.error('Error comparing article dates:', error);
+          } catch (e) {
+            // Silent catch
+          }
+          return 0;
+        }
+      });
+    } catch (error) {
+      try {
+        console.error('Error sorting articles:', error);
+      } catch (e) {
+        // Silent catch
+      }
+      // Keep unsorted on error
+      sortedArticles = categoryArticles;
+    }
+  }
+} catch (error) {
+  try {
+    console.error('Error preparing sorted articles:', error);
+  } catch (e) {
+    // Silent catch
+  }
+  // Fallback to unsorted
+  sortedArticles = categoryArticles;
+}
+
+// Debug each article with this category
+try {
+  for (let i = 0; i < sortedArticles.length; i++) {
+    try {
+      const article = sortedArticles[i];
+      if (!article || typeof article !== 'object') continue;
+      
+      const articleObj = article as any;
+      const title = articleObj?.data?.title || 'Unknown Title';
+      
+      try {
+        console.log(`Article ${i + 1}: ${title}`);
+      } catch (e) {
+        // Silent catch
+      }
+    } catch (error) {
+      try {
+        console.error(`Error logging article ${i}:`, error);
+      } catch (e) {
+        // Silent catch
+      }
+    }
+  }
+} catch (error) {
+  try {
+    console.error('Error debugging articles:', error);
+  } catch (e) {
+    // Silent catch
+  }
+}
+
+// Safe URL encoding for breadcrumb with error handling
+let encodedCategory = 'unknown';
+try {
+  encodedCategory = encodeURIComponent(currentCategory);
+} catch (error) {
+  try {
+    console.error(`Error encoding category for breadcrumb:`, error);
+  } catch (e) {
+    // Silent catch
+  }
+}
+
+// Breadcrumb items
+const breadcrumbItems = [
+  { label: 'Categories', href: '/categories' },
+  { label: currentCategory || 'Category', href: `/categories/${encodedCategory}` }
+];
+---
+
+<MainLayout 
+  title={`${currentCategory} Articles`}
+  description={`Browse all articles in the ${currentCategory} category`}
+  breadcrumbItems={breadcrumbItems}
+>
+  <header class="mb-8">
+    <h1 class="text-4xl font-bold">{currentCategory}</h1>
+    <p class="text-gray-600 mt-2">
+      {sortedArticles.length} article{sortedArticles.length !== 1 ? 's' : ''}
+    </p>
+  </header>
+  
+  {sortedArticles.length > 0 ? (
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {sortedArticles.map((article: any) => {
+        try {
+          return (<ArticleCard article={article} />);
+        } catch (error) {
+          // Fail silently and return null if rendering fails
+          return null;
+        }
+      })}
+    </div>
+  ) : (
+    <div class="bg-gray-50 p-8 rounded-lg text-center">
+      <p class="text-gray-600">No articles found in this category. The category may have been renamed or removed.</p>
+      <p class="mt-4">
+        <a href="/categories" class="text-indigo-600 hover:underline">
+          View all categories
+        </a>
+      </p>
+    </div>
+  )}
+  
+  <div class="mt-8">
+    <a href="/categories" class="text-indigo-600 hover:underline">
+      ← Back to all categories
+    </a>
+  </div>
+</MainLayout>

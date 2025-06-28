@@ -1,0 +1,169 @@
+---
+// src/pages/tags/[tag].astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+
+// Debug the current route
+console.log(`Processing tag page with params:`, Astro.params);
+
+// Get the current tag from URL (with type safety)
+const currentTag: string = Astro.params.tag || '';
+console.log(`Current tag parameter: "${currentTag}"`);
+
+// Ultra-defensive function to get tags from an article
+function getSafeTags(article: unknown): string[] {
+  try {
+    // If article doesn't exist or isn't an object, return empty array
+    if (!article || typeof article !== 'object') return [];
+    
+    // Cast to any to access properties safely
+    const articleObj = article as any;
+    
+    // If data doesn't exist or isn't an object, return empty array  
+    if (!articleObj.data || typeof articleObj.data !== 'object') return [];
+    
+    // If tags doesn't exist, return empty array
+    if (!articleObj.data.tags) return [];
+    
+    // If tags isn't an array, return empty array
+    if (!Array.isArray(articleObj.data.tags)) return [];
+    
+    // Filter out non-string tags and empty strings
+    return articleObj.data.tags.filter((tag: unknown) => {
+      if (typeof tag !== 'string') return false;
+      return tag.trim() !== '';
+    });
+  } catch (error) {
+    console.error('Error getting tags from article:', error);
+    return [];
+  }
+}
+
+// Get all articles with defensive error handling
+let allArticles: any[] = [];
+try {
+  allArticles = await getCollection('blog');
+  console.log(`Found ${allArticles.length} total articles`);
+} catch (error) {
+  console.error('Error getting blog collection:', error);
+}
+
+// Filter articles by tag with defensive approach
+let taggedArticles: any[] = [];
+try {
+  taggedArticles = allArticles.filter((article: unknown) => {
+    try {
+      const tags = getSafeTags(article);
+      return tags.includes(currentTag);
+    } catch (error) {
+      console.error('Error checking article for tag match:', error);
+      return false;
+    }
+  });
+  
+  console.log(`Found ${taggedArticles.length} articles with tag "${currentTag}"`);
+} catch (error) {
+  console.error('Error filtering articles by tag:', error);
+}
+
+// Sort articles by date with defensive approach
+let sortedArticles: any[] = [];
+try {
+  // Clone the array to avoid mutation issues
+  sortedArticles = [...taggedArticles];
+  
+  // Sort by date
+  sortedArticles.sort((a: unknown, b: unknown) => {
+    try {
+      // Cast to any to access properties safely
+      const articleA = a as any;
+      const articleB = b as any;
+      
+      // Safe date extraction with fallbacks
+      let dateA = 0;
+      try {
+        if (articleA && articleA.data && articleA.data.pubDate instanceof Date) {
+          dateA = articleA.data.pubDate.valueOf();
+        }
+      } catch (error) {
+        console.error('Error getting date A:', error);
+      }
+      
+      let dateB = 0;
+      try {
+        if (articleB && articleB.data && articleB.data.pubDate instanceof Date) {
+          dateB = articleB.data.pubDate.valueOf();
+        }
+      } catch (error) {
+        console.error('Error getting date B:', error);
+      }
+      
+      return dateB - dateA;
+    } catch (error) {
+      console.error('Error comparing dates:', error);
+      return 0;
+    }
+  });
+} catch (error) {
+  console.error('Error sorting articles:', error);
+  sortedArticles = taggedArticles; // Use unsorted as fallback
+}
+
+// Debug each article with this tag
+try {
+  sortedArticles.forEach((article: any, index: number) => {
+    try {
+      const title = article?.data?.title || 'Unknown Title';
+      const tags = getSafeTags(article).join(', ') || 'No tags';
+      console.log(`Article ${index + 1}: ${title} (tags: ${tags})`);
+    } catch (error) {
+      console.error(`Error logging article ${index}:`, error);
+    }
+  });
+} catch (error) {
+  console.error('Error debugging articles:', error);
+}
+
+// Breadcrumb items
+const breadcrumbItems = [
+  { label: 'Tags', href: '/tags' },
+  { label: currentTag || '', href: `/tags/${currentTag}` }
+];
+---
+
+<MainLayout 
+  title={`Articles Tagged with "${currentTag}"`}
+  description={`Browse all articles tagged with "${currentTag}"`}
+  breadcrumbItems={breadcrumbItems}
+>
+  <header class="mb-8">
+    <h1 class="text-4xl font-bold">Tag: {currentTag}</h1>
+    <p class="text-gray-600 mt-2">
+      {sortedArticles.length} article{sortedArticles.length !== 1 ? 's' : ''}
+    </p>
+  </header>
+  
+  {sortedArticles.length > 0 ? (
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {sortedArticles.map((article: any) => (
+        <ArticleCard article={article} />
+      ))}
+    </div>
+  ) : (
+    <div class="bg-gray-50 p-8 rounded-lg text-center">
+      <p class="text-gray-600">No articles found with tag "{currentTag}". The tag may have been renamed or removed.</p>
+      <p class="mt-4">
+        <a href="/tags" class="text-indigo-600 hover:underline">
+          View all available tags
+        </a>
+      </p>
+    </div>
+  )}
+  
+  <div class="mt-8">
+    <a href="/tags" class="text-indigo-600 hover:underline">
+      ← Back to all tags
+    </a>
+  </div>
+</MainLayout>

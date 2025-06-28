@@ -1,0 +1,97 @@
+---
+// src/pages/popular.astro
+import MainLayout from '../layouts/MainLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+
+// Get all articles
+let allArticles: any[] = [];
+try {
+  allArticles = await getCollection('blog');
+} catch (error) {
+  console.error('Error getting blog collection:', error);
+}
+
+// Helper function to safely get date from article
+function getArticleDate(article: unknown): number {
+  try {
+    if (!article || typeof article !== 'object') return 0;
+    
+    const articleObj = article as any;
+    
+    if (!articleObj.data || typeof articleObj.data !== 'object') return 0;
+    
+    if (!(articleObj.data.pubDate instanceof Date)) return 0;
+    
+    return articleObj.data.pubDate.valueOf();
+  } catch (error) {
+    console.error('Error getting article date:', error);
+    return 0;
+  }
+}
+
+// Sort articles by date (newest first)
+// In a real app, replace this with your actual popularity metric
+let popularArticles: any[] = [];
+try {
+  // Create a safe copy of the array
+  popularArticles = [...allArticles];
+  
+  // Sort by date
+  popularArticles.sort((a: any, b: any) => {
+    try {
+      const dateA = getArticleDate(a);
+      const dateB = getArticleDate(b);
+      return dateB - dateA;
+    } catch (error) {
+      console.error('Error comparing articles:', error);
+      return 0;
+    }
+  });
+  
+  // Limit to top 9 articles
+  if (popularArticles.length > 9) {
+    popularArticles = popularArticles.slice(0, 9);
+  }
+} catch (error) {
+  console.error('Error sorting articles for popular page:', error);
+  popularArticles = [];
+}
+
+// Simple breadcrumb items
+const breadcrumbItems = [
+  { label: 'Popular', href: '/popular' }
+];
+
+// In a real app, you might want to add view counts or other metrics
+// For demonstration, we'll just label them as popular
+---
+
+<MainLayout 
+  title="Popular Articles" 
+  description="Our most popular and trending articles"
+  breadcrumbItems={breadcrumbItems}
+>
+  <h1 class="text-4xl font-bold mb-8">Popular Articles</h1>
+  
+  {popularArticles.length > 0 ? (
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {popularArticles.map((article: any) => (
+        <ArticleCard article={article} />
+      ))}
+    </div>
+  ) : (
+    <div class="bg-gray-50 p-8 rounded-lg text-center">
+      <p class="text-gray-600">No articles found. Add some articles to see them here.</p>
+    </div>
+  )}
+  
+  <div class="mt-12 bg-indigo-50 p-6 rounded-lg">
+    <h2 class="text-xl font-semibold mb-3">How We Determine Popularity</h2>
+    <p class="text-gray-700">
+      Currently, articles are sorted by publication date with newest articles shown first.
+      In the future, this page will rank articles based on reader engagement, including
+      views, comments, and social shares.
+    </p>
+  </div>
+</MainLayout>

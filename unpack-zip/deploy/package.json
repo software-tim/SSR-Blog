@@ -1,0 +1,19 @@
+{
+  "name": "project",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "start": "node server/entry.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.2.1",
+    "astro": "^5.7.12"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

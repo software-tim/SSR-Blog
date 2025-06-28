@@ -1,0 +1,97 @@
+---
+// src/layouts/MainLayout.astro
+import Navigation from '../components/Navigation.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Footer from '../components/Footer.astro';
+
+interface BreadcrumbItem {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  title?: string;
+  description?: string;
+  hideBreadcrumb?: boolean;
+  breadcrumbItems?: BreadcrumbItem[];
+}
+
+const { 
+  title = 'Sinclair-AI Blog',
+  description = 'A blog about technology, AI, and more',
+  hideBreadcrumb = false,
+  breadcrumbItems = []
+} = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image" href="public/images/logo.png" />
+    <!-- Add Google Fonts or other resources here -->
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-white focus:z-50">
+      Skip to main content
+    </a>
+    
+    <header>
+      <Navigation />
+      
+      {!hideBreadcrumb && breadcrumbItems.length > 0 && (
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
+      )}
+    </header>
+    
+    <main id="main-content" class="flex-grow">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <slot />
+      </div>
+    </main>
+    
+    <Footer />
+    
+    <!-- Back to top button -->
+    <button 
+      id="back-to-top" 
+      class="fixed bottom-6 right-6 p-3 rounded-full bg-indigo-600 text-white shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      aria-label="Back to top"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+      </svg>
+    </button>
+  </body>
+</html>
+
+<script>
+  // Back to top button functionality
+  const backToTopButton = document.getElementById('back-to-top');
+  
+  if (backToTopButton) {
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTopButton.classList.remove('translate-y-20', 'opacity-0');
+        backToTopButton.classList.add('translate-y-0', 'opacity-100');
+      } else {
+        backToTopButton.classList.add('translate-y-20', 'opacity-0');
+        backToTopButton.classList.remove('translate-y-0', 'opacity-100');
+      }
+    });
+    
+    // Scroll to top when clicked
+    backToTopButton.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+</script>

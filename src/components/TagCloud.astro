@@ -1,0 +1,71 @@
+---
+// src/components/TagCloud.astro
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
+interface TagCount {
+  tag: string;
+  count: number;
+}
+
+interface Props {
+  limit?: number;
+  title?: string;
+}
+
+const { limit = 20, title = "Popular Tags" } = Astro.props;
+
+// Get all articles
+const allArticles: CollectionEntry<'blog'>[] = await getCollection('blog');
+
+// Helper function to safely get tags
+function getTagsFromArticle(article: CollectionEntry<'blog'>): string[] {
+  return Array.isArray(article.data.tags) ? article.data.tags : [];
+}
+
+// Count tag occurrences
+const tagCounts: Record<string, number> = {};
+
+allArticles.forEach(article => {
+  const tags = getTagsFromArticle(article);
+  tags.forEach(tag => {
+    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+  });
+});
+
+// Convert to array, sort by count, and limit
+const popularTags: TagCount[] = Object.entries(tagCounts)
+  .map(([tag, count]) => ({ tag, count }))
+  .sort((a, b) => b.count - a.count)
+  .slice(0, limit);
+
+// Function to determine tag size based on frequency
+function getTagSize(count: number, max: number): string {
+  const ratio = count / max;
+  if (ratio > 0.8) return 'text-lg font-semibold';
+  if (ratio > 0.6) return 'text-base font-medium';
+  if (ratio > 0.4) return 'text-sm';
+  if (ratio > 0.2) return 'text-xs';
+  return 'text-xs opacity-75';
+}
+
+const maxCount = Math.max(...popularTags.map(t => t.count));
+---
+
+<div class="bg-white p-6 rounded-lg shadow-sm">
+  <h3 class="text-xl font-semibold mb-4">{title}</h3>
+  <div class="flex flex-wrap gap-2">
+    {popularTags.map((item: TagCount) => {
+      const sizeClass = getTagSize(item.count, maxCount);
+      
+      return (
+        <a 
+          href={`/articles/tag/${item.tag}`} 
+          class={`${sizeClass} bg-gray-100 hover:bg-indigo-100 px-3 py-1 rounded-full transition-colors`}
+        >
+          {item.tag} <span class="text-gray-500 text-xs">({item.count})</span>
+        </a>
+      );
+    })}
+  </div>
+</div>

@@ -1,0 +1,58 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import MainLayout from '../../../layouts/MainLayout.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+
+// Correct type based on your collection
+type Article = CollectionEntry<'blog'>;
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const allArticles = await getCollection('blog'); // ✅ Fixed from 'articles' to 'blog'
+
+const uniqueTags = [...new Set(
+  allArticles.flatMap((article: Article) => article.data.tags || [])
+)];
+
+return uniqueTags.map(tag => {
+  const filteredArticles = allArticles.filter((article: Article) =>
+    (article.data.tags || []).includes(tag)
+  );
+
+  return {
+    params: { tag },
+    props: { tag, articles: filteredArticles },
+  };
+});
+}
+
+interface Props {
+  tag: string;
+  articles: Article[];
+}
+
+// ✅ Full type support for props
+const { tag, articles } = Astro.props as Props;
+---
+
+<MainLayout title={`Articles tagged with ${tag}`}>
+  <a href="/articles" class="inline-block mb-6 text-blue-600 hover:underline">
+    &larr; Back to All Articles
+  </a>
+
+  <h1 class="text-4xl font-bold mb-8">
+    Articles tagged with <span class="text-blue-600">{tag}</span>
+  </h1>
+
+  {articles.length === 0 ? (
+    <p class="text-gray-700">No articles found with this tag.</p>
+  ) : (
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {articles.map((article: Article) => (
+        <ArticleCard article={article} />
+      ))}
+    </div>
+  )}
+</MainLayout>
