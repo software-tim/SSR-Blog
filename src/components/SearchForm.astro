@@ -1,35 +1,542 @@
 <!-- SearchForm.astro -->
-<form id="search-form" class="flex items-center" action="/articles/search">
-  <label for="search-input" class="sr-only">Search</label>
-  <div class="relative w-full">            
-    <input
-      type="text"
-      id="query"
-      name="q"
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
-      placeholder="Search articles..."
-      required
-    />
-  </div>
-  <button
-    type="submit"
-    class="p-2.5 ms-2 text-sm font-medium text-white bg-indigo-700 rounded-lg border border-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300"
-  >
-    <svg
-      class="w-4 h-4"
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 20 20"
-    >
-      <path
-        stroke="currentColor"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+<div id="search-container" class="relative">
+  <form id="search-form" class="flex items-center" action="/articles/search">
+    <label for="search-input" class="sr-only">Search</label>
+    <div class="relative w-full">            
+      <input
+        type="text"
+        id="query"
+        name="q"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 pr-10"
+        placeholder="Search articles..."
+        autocomplete="off"
+        required
       />
-    </svg>
-    <span class="sr-only">Search</span>
-  </button>
-</form>
+      <!-- Clear button -->
+      <button
+        type="button"
+        id="clear-search"
+        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Search Type Selector -->
+    <div class="ml-2 flex items-center space-x-1">
+      <select 
+        id="search-type" 
+        class="text-xs bg-gray-50 border border-gray-300 text-gray-700 rounded px-2 py-1"
+      >
+        <option value="semantic">🧠 AI</option>
+        <option value="fuzzy">🔍 Fuzzy</option>
+        <option value="exact">📝 Exact</option>
+      </select>
+    </div>
+    
+    <button
+      type="submit"
+      id="search-button"
+      class="p-2.5 ms-2 text-sm font-medium text-white bg-indigo-700 rounded-lg border border-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 relative"
+    >
+      <!-- Search Icon -->
+      <svg
+        id="search-icon"
+        class="w-4 h-4"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 20 20"
+      >
+        <path
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+        />
+      </svg>
+      
+      <!-- Loading Spinner -->
+      <svg
+        id="loading-spinner"
+        class="w-4 h-4 animate-spin hidden"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      
+      <span class="sr-only">Search</span>
+    </button>
+  </form>
+
+  <!-- Search Suggestions Dropdown -->
+  <div 
+    id="suggestions-dropdown" 
+    class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden max-h-60 overflow-y-auto"
+  >
+    <div id="suggestions-content" class="p-2"></div>
+  </div>
+
+  <!-- Search Results Container -->
+  <div 
+    id="search-results" 
+    class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-40 hidden max-h-96 overflow-y-auto"
+  >
+    <div id="results-content" class="p-4"></div>
+  </div>
+</div>
+
+<script>
+// Type definitions for better TypeScript support
+interface SearchResult {
+  slug: string;
+  title: string;
+  description: string;
+  excerpt: string;
+  snippet?: string;
+  tags: string[];
+  date: string;
+  readingTime: number;
+  url: string;
+  llmRelevanceScore?: number;
+  relevanceReason?: string;
+  searchInsights?: {
+    analysis: string;
+    relatedTopics: string[];
+  };
+}
+
+interface SearchResponse {
+  results: SearchResult[];
+  query: string;
+  searchType: string;
+  enhanced: boolean;
+}
+
+class EnhancedSearch {
+  private searchInput: HTMLInputElement;
+  private searchForm: HTMLFormElement;
+  private searchButton: HTMLButtonElement;
+  private searchIcon: HTMLElement;
+  private loadingSpinner: HTMLElement;
+  private clearButton: HTMLButtonElement;
+  private searchType: HTMLSelectElement;
+  private suggestionsDropdown: HTMLDivElement;
+  private suggestionsContent: HTMLDivElement;
+  private searchResults: HTMLDivElement;
+  private resultsContent: HTMLDivElement;
+  
+  private debounceTimer: number | null = null;
+  private currentQuery: string = '';
+  private searchHistory: string[] = [];
+
+  constructor() {
+    // Get DOM elements with proper type checking
+    this.searchInput = this.getElement('query') as HTMLInputElement;
+    this.searchForm = this.getElement('search-form') as HTMLFormElement;
+    this.searchButton = this.getElement('search-button') as HTMLButtonElement;
+    this.searchIcon = this.getElement('search-icon') as HTMLElement;
+    this.loadingSpinner = this.getElement('loading-spinner') as HTMLElement;
+    this.clearButton = this.getElement('clear-search') as HTMLButtonElement;
+    this.searchType = this.getElement('search-type') as HTMLSelectElement;
+    this.suggestionsDropdown = this.getElement('suggestions-dropdown') as HTMLDivElement;
+    this.suggestionsContent = this.getElement('suggestions-content') as HTMLDivElement;
+    this.searchResults = this.getElement('search-results') as HTMLDivElement;
+    this.resultsContent = this.getElement('results-content') as HTMLDivElement;
+    
+    this.searchHistory = this.loadSearchHistory();
+    this.init();
+  }
+
+  private getElement(id: string): HTMLElement {
+    const element = document.getElementById(id);
+    if (!element) {
+      throw new Error(`Element with id '${id}' not found`);
+    }
+    return element;
+  }
+
+  private init(): void {
+    // Real-time search as user types
+    this.searchInput.addEventListener('input', (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      this.handleInputChange(target.value);
+    });
+
+    // Form submission
+    this.searchForm.addEventListener('submit', (e: Event) => {
+      e.preventDefault();
+      this.performSearch(this.searchInput.value, true);
+    });
+
+    // Clear search
+    this.clearButton.addEventListener('click', () => {
+      this.clearSearch();
+    });
+
+    // Search type change
+    this.searchType.addEventListener('change', () => {
+      if (this.currentQuery) {
+        this.performSearch(this.currentQuery);
+      }
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('#search-container')) {
+        this.hideSuggestions();
+        this.hideResults();
+      }
+    });
+
+    // Show search history on focus
+    this.searchInput.addEventListener('focus', () => {
+      if (!this.searchInput.value && this.searchHistory.length > 0) {
+        this.showSearchHistory();
+      }
+    });
+  }
+
+  private handleInputChange(value: string): void {
+    this.currentQuery = value;
+    
+    // Show/hide clear button
+    if (value) {
+      this.clearButton.classList.remove('hidden');
+    } else {
+      this.clearButton.classList.add('hidden');
+      this.hideResults();
+      this.hideSuggestions();
+      return;
+    }
+
+    // Debounced search
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    
+    this.debounceTimer = window.setTimeout(() => {
+      if (value.length >= 2) {
+        this.getSuggestions(value);
+        this.performSearch(value);
+      }
+    }, 300);
+  }
+
+  private async performSearch(query: string, addToHistory: boolean = false): Promise<void> {
+    if (!query.trim()) return;
+
+    this.showLoading();
+    
+    try {
+      const searchParams = new URLSearchParams({
+        q: query,
+        limit: '5',
+        enhance: 'true',
+        type: this.searchType.value
+      });
+
+      const response = await fetch(`http://localhost:3001/api/search?${searchParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.statusText}`);
+      }
+
+      const data: SearchResponse = await response.json();
+      this.displayResults(data);
+      
+      if (addToHistory) {
+        this.addToSearchHistory(query);
+      }
+
+    } catch (error) {
+      console.error('Search error:', error);
+      this.showError('Search failed. Please try again.');
+    } finally {
+      this.hideLoading();
+    }
+  }
+
+  private async getSuggestions(query: string): Promise<void> {
+    try {
+      const response = await fetch(`http://localhost:3001/api/suggestions?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        this.showSuggestions(data.suggestions || []);
+      }
+    } catch (error) {
+      console.error('Suggestions error:', error);
+    }
+  }
+
+  private displayResults(data: SearchResponse): void {
+    const { results, query, searchType, enhanced } = data;
+    
+    if (results.length === 0) {
+      this.resultsContent.innerHTML = `
+        <div class="text-center py-4 text-gray-500">
+          <p>No results found for "${query}"</p>
+          <p class="text-sm">Try different keywords or check your spelling.</p>
+        </div>
+      `;
+    } else {
+      const enhancementBadge = enhanced ? 
+        '<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">✨ AI Enhanced</span>' : '';
+      
+      this.resultsContent.innerHTML = `
+        <div class="mb-3 pb-2 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-gray-900">Search Results (${results.length})</h3>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-gray-500">${searchType}</span>
+              ${enhancementBadge}
+            </div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          ${results.map(result => this.renderSearchResult(result, query)).join('')}
+        </div>
+      `;
+    }
+    
+    this.showResults();
+    this.hideSuggestions();
+  }
+
+  private renderSearchResult(result: SearchResult, query: string): string {
+    // Enhanced debugging to see exactly what we're receiving
+    console.log('🔍 === RENDERING RESULT ===');
+    console.log('🔍 Title:', result.title);
+    console.log('🔍 llmRelevanceScore:', result.llmRelevanceScore);
+    console.log('🔍 relevanceReason:', result.relevanceReason);
+    console.log('🔍 searchInsights:', result.searchInsights);
+    console.log('🔍 === END RESULT ===');
+    
+    const { title, description, excerpt, snippet, tags, date, readingTime, url, llmRelevanceScore, relevanceReason } = result;
+    
+    const formattedDate = new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    // AI Relevance reason (from semantic search) - Show if we have a score
+    const relevanceInfo = llmRelevanceScore ? 
+      `<div class="mt-2 p-2 bg-blue-50 rounded-lg text-xs border-l-4 border-blue-400">
+        <div class="flex items-start">
+          <span class="flex-shrink-0 text-blue-600 mr-2">🤖</span>
+          <div>
+            <div class="font-medium text-blue-800 mb-1">AI Relevance (${Math.round(llmRelevanceScore * 100)}%)</div>
+            <div class="text-blue-700">${relevanceReason || 'AI determined this result is highly relevant to your search.'}</div>
+          </div>
+        </div>
+      </div>` : '';
+
+    // AI Search Insights (from search enhancement)
+    const searchInsightsInfo = result.searchInsights ? 
+      `<div class="mt-2 p-3 bg-green-50 rounded-lg text-sm border-l-4 border-green-400">
+        <div class="flex items-start">
+          <span class="flex-shrink-0 text-green-600 mr-2">🔍</span>
+          <div>
+            <div class="font-medium text-green-800 mb-1">AI Search Analysis</div>
+            <div class="text-green-700 mb-2">${result.searchInsights.analysis}</div>
+            ${result.searchInsights.relatedTopics && result.searchInsights.relatedTopics.length > 0 ? 
+              `<div class="text-green-600 text-xs">
+                <strong>Related topics:</strong> ${result.searchInsights.relatedTopics.join(', ')}
+              </div>` : ''
+            }
+          </div>
+        </div>
+      </div>` : '';
+
+    return `
+      <article class="border-b border-gray-100 pb-3 last:border-b-0">
+        <div class="flex items-start justify-between">
+          <h4 class="font-medium text-indigo-600 hover:text-indigo-800">
+            <a href="${url}" class="block">${this.highlightQuery(title, query)}</a>
+          </h4>
+          <div class="text-xs text-gray-500 ml-2 flex-shrink-0">
+            ${formattedDate} • ${readingTime} min read
+          </div>
+        </div>
+        
+        <p class="text-sm text-gray-600 mt-1">
+          ${this.highlightQuery(snippet || excerpt || description, query)}
+        </p>
+        
+        ${tags.length > 0 ? `
+          <div class="mt-2 flex flex-wrap gap-1">
+            ${tags.slice(0, 3).map(tag => 
+              `<span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">${tag}</span>`
+            ).join('')}
+          </div>
+        ` : ''}
+        
+        ${relevanceInfo}
+        ${searchInsightsInfo}
+      </article>
+    `;
+  }
+
+  private showSuggestions(suggestions: string[]): void {
+    if (suggestions.length === 0 && this.searchHistory.length === 0) {
+      this.hideSuggestions();
+      return;
+    }
+
+    let content = '';
+    
+    if (suggestions.length > 0) {
+      content += `
+        <div class="border-b border-gray-100 pb-2 mb-2">
+          <h4 class="text-xs font-medium text-gray-500 mb-2">SUGGESTIONS</h4>
+          ${suggestions.map(suggestion => `
+            <button class="suggestion-item block w-full text-left px-2 py-1 text-sm hover:bg-gray-50 rounded" data-suggestion="${suggestion}">
+              🔍 ${suggestion}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    this.suggestionsContent.innerHTML = content;
+    
+    // Add click handlers for suggestions
+    this.suggestionsContent.querySelectorAll('.suggestion-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const button = item as HTMLButtonElement;
+        const suggestion = button.dataset.suggestion;
+        if (suggestion) {
+          this.searchInput.value = suggestion;
+          this.performSearch(suggestion, true);
+          this.hideSuggestions();
+        }
+      });
+    });
+    
+    this.suggestionsDropdown.classList.remove('hidden');
+  }
+
+  private showSearchHistory(): void {
+    if (this.searchHistory.length === 0) return;
+
+    const content = `
+      <div>
+        <h4 class="text-xs font-medium text-gray-500 mb-2">RECENT SEARCHES</h4>
+        ${this.searchHistory.map(item => `
+          <button class="history-item block w-full text-left px-2 py-1 text-sm hover:bg-gray-50 rounded" data-query="${item}">
+            📖 ${item}
+          </button>
+        `).join('')}
+      </div>
+    `;
+    
+    this.suggestionsContent.innerHTML = content;
+    
+    // Add click handlers for history
+    this.suggestionsContent.querySelectorAll('.history-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const button = item as HTMLButtonElement;
+        const historyQuery = button.dataset.query;
+        if (historyQuery) {
+          this.searchInput.value = historyQuery;
+          this.performSearch(historyQuery);
+          this.hideSuggestions();
+        }
+      });
+    });
+    
+    this.suggestionsDropdown.classList.remove('hidden');
+  }
+
+  private highlightQuery(text: string, query: string): string {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
+  }
+
+  private showLoading(): void {
+    this.searchIcon.classList.add('hidden');
+    this.loadingSpinner.classList.remove('hidden');
+    this.searchButton.disabled = true;
+  }
+
+  private hideLoading(): void {
+    this.searchIcon.classList.remove('hidden');
+    this.loadingSpinner.classList.add('hidden');
+    this.searchButton.disabled = false;
+  }
+
+  private showResults(): void {
+    this.searchResults.classList.remove('hidden');
+  }
+
+  private hideResults(): void {
+    this.searchResults.classList.add('hidden');
+  }
+
+  private hideSuggestions(): void {
+    this.suggestionsDropdown.classList.add('hidden');
+  }
+
+  private showError(message: string): void {
+    this.resultsContent.innerHTML = `
+      <div class="text-center py-4 text-red-500">
+        <p>${message}</p>
+      </div>
+    `;
+    this.showResults();
+  }
+
+  private clearSearch(): void {
+    this.searchInput.value = '';
+    this.currentQuery = '';
+    this.clearButton.classList.add('hidden');
+    this.hideResults();
+    this.hideSuggestions();
+    this.searchInput.focus();
+  }
+
+  private addToSearchHistory(query: string): void {
+    this.searchHistory = [query, ...this.searchHistory.filter(q => q !== query)].slice(0, 10);
+    localStorage.setItem('blog-search-history', JSON.stringify(this.searchHistory));
+  }
+
+  private loadSearchHistory(): string[] {
+    try {
+      const saved = localStorage.getItem('blog-search-history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    new EnhancedSearch();
+  } catch (error) {
+    console.error('Failed to initialize search:', error);
+    // Fallback - ensure basic form still works
+  }
+});
+</script>
+
+<style>
+  mark {
+    background-color: #fef08a;
+    padding: 1px 2px;
+    border-radius: 2px;
+  }
+  
+  #search-results, #suggestions-dropdown {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+</style>
