@@ -6,7 +6,7 @@ import { $ as $$SearchForm } from '../chunks/SearchForm_k14RDF15.mjs';
 import { f as formatDate, $ as $$ArticleCard } from '../chunks/ArticleCard_D2wv1XZh.mjs';
 import 'clsx';
 import { A as ARTICLES_PER_PAGE, H as HOMEPAGE_ARTICLE_LIMIT, $ as $$Pagination } from '../chunks/constants_D7bnrj3_.mjs';
-import { g as getCollection } from '../chunks/_astro_content_rdBH0Qv4.mjs';
+import { g as getCollection } from '../chunks/_astro_content_BFzcVRWU.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro$1 = createAstro();

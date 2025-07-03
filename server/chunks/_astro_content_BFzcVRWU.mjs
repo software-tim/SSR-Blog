@@ -310,7 +310,7 @@ createCollectionToGlobResultMap({
 });
 
 let lookupMap = {};
-lookupMap = {"blog":{"type":"content","entries":{"the-best-laptops-for-developers-in-2024":"/src/content/blog/best-laptops-for-developers.md","capturing-lifes-moments-with-canon-excellence":"/src/content/blog/cannon-excellence.md","guardian-of-the-digital-realm-web-security":"/src/content/blog/guardian-of-the-digital-realm.md","immerse-in-the-virtual-world-vr-development":"/src/content/blog/immerse-in-the-virtual-world.md","elevate-your-mobile-experience-with-samsung":"/src/content/blog/elevate-your-mobile-experience.md","unleash-creativity-with-these-cutting-edge-tablets":"/src/content/blog/cutting-edge-tablets.md","soaring-to-new-heights-the-world-of-drones":"/src/content/blog/world-of-drones.md"}}};
+lookupMap = {"blog":{"type":"content","entries":{"the-best-laptops-for-developers-in-2024":"/src/content/blog/best-laptops-for-developers.md","capturing-lifes-moments-with-canon-excellence":"/src/content/blog/cannon-excellence.md","elevate-your-mobile-experience-with-samsung":"/src/content/blog/elevate-your-mobile-experience.md","immerse-in-the-virtual-world-vr-development":"/src/content/blog/immerse-in-the-virtual-world.md","unleash-creativity-with-these-cutting-edge-tablets":"/src/content/blog/cutting-edge-tablets.md","guardian-of-the-digital-realm-web-security":"/src/content/blog/guardian-of-the-digital-realm.md","soaring-to-new-heights-the-world-of-drones":"/src/content/blog/world-of-drones.md"}}};
 
 new Set(Object.keys(lookupMap));
 

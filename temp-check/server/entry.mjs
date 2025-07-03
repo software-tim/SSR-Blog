@@ -20,10 +20,10 @@ const _manifest = Object.assign(manifest, {
 });
 const _args = {
     "mode": "standalone",
-    "client": "file:///C:/Users/TimSi/VS_Code_Folder/SSR-Blog/project/dist/client/",
-    "server": "file:///C:/Users/TimSi/VS_Code_Folder/SSR-Blog/project/dist/server/",
-    "host": false,
-    "port": 4321,
+    "client": "./client/",
+    "server": "./server/",
+    "host": process.env.HOST || "0.0.0.0",
+    "port": parseInt(process.env.PORT) || 8080,
     "assets": "_astro"
 };
 const _exports = createExports(_manifest, _args);
