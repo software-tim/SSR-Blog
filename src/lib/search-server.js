@@ -586,7 +586,7 @@ Results: ${results.slice(0, 3).map(r => r.title).join(', ')}
         return this.searchIndex.find(post => post.slug === slug);
     }
 
-    start(port = 3001) {
+    start(port = process.env.PORT || 8081) {
         this.app.listen(port, () => {
             console.log(`🔍 Blog Search Server running on port ${port}`);
             console.log(`🏥 Health check: http://localhost:${port}/api/health`);
@@ -600,4 +600,4 @@ Results: ${results.slice(0, 3).map(r => r.title).join(', ')}
 
 // Start the server
 const searchServer = new BlogSearchServer();
-searchServer.start(process.env.SEARCH_PORT || 3001);
+searchServer.start(process.env.PORT || 8081);

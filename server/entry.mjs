@@ -1,6 +1,6 @@
 import { renderers } from './renderers.mjs';
 import { c as createExports, s as serverEntrypointModule } from './chunks/_@astrojs-ssr-adapter_BGHy5kC5.mjs';
-import { manifest } from './manifest_DJzZgqqt.mjs';
+import { manifest } from './manifest_D-KI3dIh.mjs';
 
 const _page0 = () => import('./pages/_image.astro.mjs');
 const _page1 = () => import('./pages/404.astro.mjs');
@@ -44,7 +44,7 @@ const _args = {
     "mode": "standalone",
     "client": "file:///C:/Users/TimSi/VS_Code_Folder/SSR-Blog/project/client/",
     "server": "file:///C:/Users/TimSi/VS_Code_Folder/SSR-Blog/project/server/",
-    "host": false,
+    "host": "0.0.0.0",
     "port": 8080,
     "assets": "_astro"
 };

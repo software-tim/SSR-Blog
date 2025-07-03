@@ -24,13 +24,15 @@ export default defineConfig({
       proxy: {
         // Proxy search API calls to our MCP search server
         '/api': {
-          target: 'http://localhost:3001',
-          changeOrigin: true
+          target: process.env.SEARCH_SERVER_URL || 'http://localhost:8081',
+          changeOrigin: true,
+          secure: false
         }
       }
     }
   },
   server: {
+    host: process.env.HOST || "0.0.0.0",
     port: parseInt(process.env.PORT) || 8080
   }
 });
