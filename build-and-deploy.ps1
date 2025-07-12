@@ -62,4 +62,5 @@ Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "  View GitHub Actions log:"
 Write-Host "    https://github.com/software-tim/SSR-Blog/actions"
 Write-Host "  View your Azure site:"
-Write-Host "    https://ssr-blog-g3g4hcg6ffhvchfg.centralus-01.azurewebsites.net"
+Write-Host "    https://ssr-blog.azurewebsites.net"
+
