@@ -1,0 +1,77 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build and Deploy to Azure",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "./build-and-deploy.ps1"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Complete Azure deployment: clean cache, build, fix entry.mjs, and deploy via GitHub"
+        },
+        {
+            "label": "Build and Deploy (Custom Message)",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "./build-and-deploy.ps1",
+                "-CommitMessage",
+                "${input:commitMessage}"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Complete Azure deployment with custom commit message"
+        },
+        {
+            "label": "Quick Build Only",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "build"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [],
+            "detail": "Just run npm build without deployment"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "commitMessage",
+            "description": "Enter commit message",
+            "default": "Update blog content and deploy to Azure",
+            "type": "promptString"
+        }
+    ]
+}
