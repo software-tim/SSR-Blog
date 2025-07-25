@@ -3,143 +3,40 @@ import MainLayout from '../../layouts/MainLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+import SearchForm from '../../components/SearchForm.astro';
 import Pagination from '../../components/Pagination.astro';
 import { ARTICLES_PER_PAGE } from '../../constants';
 
-// Get the search query from URL
-const query = Astro.url.searchParams.get('q')?.toLowerCase() || '';
+const currentPage: number | null = +Astro.url.searchParams.get('page')! || 1;
 
-// Get all articles
-let allBlogArticles: CollectionEntry<'blog'>[] = [];
-try {
-  allBlogArticles = await getCollection('blog');
-} catch (error) {
-  console.error('Error fetching blog collection:', error);
-}
+const allBlogArticles: CollectionEntry<'blog'>[] = (await getCollection('blog'))
+.sort((a:CollectionEntry<'blog'>, b:CollectionEntry<'blog'>) => 
+b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-// Filter articles based on search query - with error handling
-let searchResults: CollectionEntry<'blog'>[] = [];
-try {
-  if (query && allBlogArticles.length > 0) {
-    searchResults = allBlogArticles.filter(article => {
-      try {
-        // Check title (safely)
-        const titleMatch = article.data?.title?.toLowerCase()?.includes(query) || false;
-        
-        // Check body (safely)
-        const bodyMatch = typeof article.body === 'string' && 
-                          article.body.toLowerCase().includes(query);
-        
-        // Check tags (safely)
-        const tagMatch = Array.isArray(article.data?.tags) && 
-                        article.data.tags.some((tag: string) => 
-                          tag?.toLowerCase()?.includes(query) || false
-                        );
-        
-        return titleMatch || bodyMatch || tagMatch;
-      } catch (err) {
-        console.error('Error filtering article:', err);
-        return false;
-      }
-    });
-  }
-} catch (error) {
-  console.error('Error in search filtering:', error);
-}
+const totalPages: number = Math.ceil(allBlogArticles.length / ARTICLES_PER_PAGE);
 
-// Sort with error handling
-try {
-  searchResults.sort((a, b) => {
-    try {
-      return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
-    } catch (err) {
-      return 0; // Default sorting value if error
-    }
-  });
-} catch (error) {
-  console.error('Error sorting results:', error);
-}
-
-// Pagination logic - with error handling
-let currentPage = 1;
-let totalPages = 1;
-let resultsForPage: CollectionEntry<'blog'>[] = [];
-
-try {
-  currentPage = parseInt(Astro.url.searchParams.get('page') || '1') || 1;
-  if (isNaN(currentPage) || currentPage < 1) currentPage = 1;
-  
-  const totalResults = searchResults.length;
-  totalPages = Math.max(1, Math.ceil(totalResults / ARTICLES_PER_PAGE));
-  
-  const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
-  const endIndex = startIndex + ARTICLES_PER_PAGE;
-  
-  resultsForPage = searchResults.slice(startIndex, endIndex);
-} catch (error) {
-  console.error('Error in pagination:', error);
-  // Fallback to simple values if error
-  currentPage = 1;
-  totalPages = 1;
-  resultsForPage = [];
-}
+const articlesForPage: CollectionEntry<'blog'>[] = allBlogArticles.slice(
+  (currentPage - 1) * ARTICLES_PER_PAGE,
+  currentPage * ARTICLES_PER_PAGE
+);
 ---
 
-<MainLayout title="Search Articles">
-  <h1 class="text-4xl font-bold mb-6">Search Articles</h1>
-  
-  <div class="mb-6">
-    <form action="/articles/search" method="get" class="flex gap-2">
-      <input 
-        type="text" 
-        name="q" 
-        placeholder="Search articles..." 
-        value={query}
-        class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-      <button 
-        type="submit"
-        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-      >
-        Search
-      </button>
-    </form>
-  </div>
-  
-  <div class="mt-8">
-    {!query ? (
-      <p class="text-center text-gray-600">
-        Enter a search term above to find articles.
-      </p>
-    ) : resultsForPage.length === 0 ? (
-      <div class="bg-gray-100 p-5 rounded-lg">
-        <p class="text-center text-gray-700">No articles found matching "{query}"</p>
-      </div>
-    ) : (
-      <>
-        <p class="mb-5 text-gray-700">{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found for "{query}"</p>
-        
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {resultsForPage.map(article => (
-            <ArticleCard article={article} />
-          ))}
+<MainLayout>  
+        <h1 class="text-2xl pb-3">Search Articles</h1>
+        <SearchForm />
+        <br>
+<!--        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {articlesForPage.map(article => (
+                <ArticleCard article={article} />
+            ))
+            } 
         </div>
-        
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            disablePrevious={currentPage === 1}
-            disableNext={currentPage === totalPages}
-          />
-        )}
-      </>
-    )}
-  </div>
-
-  <div class="mt-6">
-    <a href="/articles" class="text-blue-600 hover:underline">
-      ← Back to all articles
-    </a>
-  </div>
+--> 
+<Pagination 
+  currentPage={currentPage} 
+  totalPages={totalPages} 
+  disablePrevious={currentPage === 1} 
+  disableNext={currentPage === totalPages} 
+/>    
+<!-- <p>Debug: Current Page {currentPage}, Total Pages {totalPages}</p> -->
 </MainLayout>

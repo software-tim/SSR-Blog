@@ -2,11 +2,10 @@
 import { c as createComponent, b as createAstro, m as maybeRenderHead, d as addAttribute, a as renderTemplate, r as renderComponent } from '../chunks/astro/server_BkWgqeXe.mjs';
 import 'kleur/colors';
 import { $ as $$MainLayout } from '../chunks/MainLayout_7CY3JyJ_.mjs';
-import { $ as $$SearchForm } from '../chunks/SearchForm_k14RDF15.mjs';
+import { A as ARTICLES_PER_PAGE, $ as $$SearchForm, H as HOMEPAGE_ARTICLE_LIMIT, a as $$Pagination } from '../chunks/constants_C5FkH0Mh.mjs';
 import { f as formatDate, $ as $$ArticleCard } from '../chunks/ArticleCard_D2wv1XZh.mjs';
 import 'clsx';
-import { A as ARTICLES_PER_PAGE, H as HOMEPAGE_ARTICLE_LIMIT, $ as $$Pagination } from '../chunks/constants_D7bnrj3_.mjs';
-import { g as getCollection } from '../chunks/_astro_content_BG-zdqh1.mjs';
+import { g as getCollection } from '../chunks/_astro_content_DhWa9HZ5.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro$1 = createAstro();
