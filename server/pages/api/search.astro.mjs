@@ -6,9 +6,15 @@ async function GET({ url }) {
     const response = await fetch(`http://localhost:8081/api/search?${searchParams}`);
     const data = await response.json();
     
+    // Extract search type from URL params or data
+    const searchType = searchParams.get('type') || data.searchType || 'semantic';
+    
     // Transform the results to ensure proper URLs and confidence scores
     const transformedData = {
       ...data,
+      searchType: searchType, // Ensure searchType is always defined
+      query: searchParams.get('q') || data.query || '',
+      enhanced: data.enhanced !== undefined ? data.enhanced : true,
       results: data.results ? data.results.map(article => ({
         ...article,
         // Fix: Build the correct URL from slug if not provided
@@ -32,13 +38,16 @@ async function GET({ url }) {
     };
     
     // Debug logging to help troubleshoot
-    if (transformedData.results.length > 0) {
-      console.log('Search API - First result:', {
+    console.log('Search API - Transformed data:', {
+      searchType: transformedData.searchType,
+      query: transformedData.query,
+      resultsCount: transformedData.results.length,
+      firstResult: transformedData.results.length > 0 ? {
         slug: transformedData.results[0].slug,
         url: transformedData.results[0].url,
         llmRelevanceScore: transformedData.results[0].llmRelevanceScore
-      });
-    }
+      } : null
+    });
     
     return new Response(JSON.stringify(transformedData), {
       status: 200,
@@ -48,7 +57,9 @@ async function GET({ url }) {
     console.error('Search API error:', error);
     return new Response(JSON.stringify({ 
       error: 'Search failed',
-      results: [] 
+      results: [],
+      searchType: searchParams.get('type') || 'semantic',
+      query: searchParams.get('q') || ''
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
