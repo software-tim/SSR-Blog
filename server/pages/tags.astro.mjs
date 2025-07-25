@@ -2,7 +2,7 @@
 import { c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, d as addAttribute } from '../chunks/astro/server_BkWgqeXe.mjs';
 import 'kleur/colors';
 import { $ as $$MainLayout } from '../chunks/MainLayout_7CY3JyJ_.mjs';
-import { g as getCollection } from '../chunks/_astro_content_BGReW-tS.mjs';
+import { g as getCollection } from '../chunks/_astro_content_D343Uncz.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Index = createComponent(async ($$result, $$props, $$slots) => {
