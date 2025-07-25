@@ -293,7 +293,7 @@ function isPropagatedAssetsModule(module) {
 
 const contentDir = '/src/content/';
 
-const contentEntryGlob = /* #__PURE__ */ Object.assign({"/src/content/blog/best-laptops-for-developers.md": () => import('./best-laptops-for-developers_B2sCEmKG.mjs'),"/src/content/blog/cannon-excellence.md": () => import('./cannon-excellence_D9b1THYx.mjs'),"/src/content/blog/cutting-edge-tablets.md": () => import('./cutting-edge-tablets_DL6MbG-V.mjs'),"/src/content/blog/elevate-your-mobile-experience.md": () => import('./elevate-your-mobile-experience_DyKMCLSW.mjs'),"/src/content/blog/guardian-of-the-digital-realm.md": () => import('./guardian-of-the-digital-realm_DeAuRzEd.mjs'),"/src/content/blog/immerse-in-the-virtual-world.md": () => import('./immerse-in-the-virtual-world_DJpcqvQG.mjs'),"/src/content/blog/world-of-drones.md": () => import('./world-of-drones_rV03Vwha.mjs')});
+const contentEntryGlob = /* #__PURE__ */ Object.assign({"/src/content/blog/best-laptops-for-developers.md": () => import('./best-laptops-for-developers_C2fzZSUA.mjs'),"/src/content/blog/cannon-excellence.md": () => import('./cannon-excellence_D9b1THYx.mjs'),"/src/content/blog/cutting-edge-tablets.md": () => import('./cutting-edge-tablets_DL6MbG-V.mjs'),"/src/content/blog/elevate-your-mobile-experience.md": () => import('./elevate-your-mobile-experience_DyKMCLSW.mjs'),"/src/content/blog/guardian-of-the-digital-realm.md": () => import('./guardian-of-the-digital-realm_DeAuRzEd.mjs'),"/src/content/blog/immerse-in-the-virtual-world.md": () => import('./immerse-in-the-virtual-world_DJpcqvQG.mjs'),"/src/content/blog/world-of-drones.md": () => import('./world-of-drones_rV03Vwha.mjs')});
 const contentCollectionToEntryMap = createCollectionToGlobResultMap({
 	globResult: contentEntryGlob,
 	contentDir,
@@ -310,7 +310,7 @@ createCollectionToGlobResultMap({
 });
 
 let lookupMap = {};
-lookupMap = {"blog":{"type":"content","entries":{"the-best-laptops-for-developers-in-2024":"/src/content/blog/best-laptops-for-developers.md","capturing-lifes-moments-with-canon-excellence":"/src/content/blog/cannon-excellence.md","unleash-creativity-with-these-cutting-edge-tablets":"/src/content/blog/cutting-edge-tablets.md","immerse-in-the-virtual-world-vr-development":"/src/content/blog/immerse-in-the-virtual-world.md","elevate-your-mobile-experience-with-samsung":"/src/content/blog/elevate-your-mobile-experience.md","guardian-of-the-digital-realm-web-security":"/src/content/blog/guardian-of-the-digital-realm.md","soaring-to-new-heights-the-world-of-drones":"/src/content/blog/world-of-drones.md"}}};
+lookupMap = {"blog":{"type":"content","entries":{"the-best-laptops-for-developers-in-2024":"/src/content/blog/best-laptops-for-developers.md","guardian-of-the-digital-realm-web-security":"/src/content/blog/guardian-of-the-digital-realm.md","capturing-lifes-moments-with-canon-excellence":"/src/content/blog/cannon-excellence.md","unleash-creativity-with-these-cutting-edge-tablets":"/src/content/blog/cutting-edge-tablets.md","immerse-in-the-virtual-world-vr-development":"/src/content/blog/immerse-in-the-virtual-world.md","elevate-your-mobile-experience-with-samsung":"/src/content/blog/elevate-your-mobile-experience.md","soaring-to-new-heights-the-world-of-drones":"/src/content/blog/world-of-drones.md"}}};
 
 new Set(Object.keys(lookupMap));
 
@@ -323,7 +323,7 @@ function createGlobLookup(glob) {
 	};
 }
 
-const renderEntryGlob = /* #__PURE__ */ Object.assign({"/src/content/blog/best-laptops-for-developers.md": () => import('./best-laptops-for-developers_DjqANlXw.mjs'),"/src/content/blog/cannon-excellence.md": () => import('./cannon-excellence_D5fkMOAO.mjs'),"/src/content/blog/cutting-edge-tablets.md": () => import('./cutting-edge-tablets_DxHebFBB.mjs'),"/src/content/blog/elevate-your-mobile-experience.md": () => import('./elevate-your-mobile-experience_Cwe05QrY.mjs'),"/src/content/blog/guardian-of-the-digital-realm.md": () => import('./guardian-of-the-digital-realm_CLHAQDRw.mjs'),"/src/content/blog/immerse-in-the-virtual-world.md": () => import('./immerse-in-the-virtual-world_DtUma4Pp.mjs'),"/src/content/blog/world-of-drones.md": () => import('./world-of-drones_BygS96kB.mjs')});
+const renderEntryGlob = /* #__PURE__ */ Object.assign({"/src/content/blog/best-laptops-for-developers.md": () => import('./best-laptops-for-developers_DFq0n0Uj.mjs'),"/src/content/blog/cannon-excellence.md": () => import('./cannon-excellence_D5fkMOAO.mjs'),"/src/content/blog/cutting-edge-tablets.md": () => import('./cutting-edge-tablets_DxHebFBB.mjs'),"/src/content/blog/elevate-your-mobile-experience.md": () => import('./elevate-your-mobile-experience_Cwe05QrY.mjs'),"/src/content/blog/guardian-of-the-digital-realm.md": () => import('./guardian-of-the-digital-realm_CLHAQDRw.mjs'),"/src/content/blog/immerse-in-the-virtual-world.md": () => import('./immerse-in-the-virtual-world_DtUma4Pp.mjs'),"/src/content/blog/world-of-drones.md": () => import('./world-of-drones_BygS96kB.mjs')});
 const collectionToRenderEntryMap = createCollectionToGlobResultMap({
 	globResult: renderEntryGlob,
 	contentDir,

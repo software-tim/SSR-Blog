@@ -12,7 +12,7 @@ In the ever-evolving landscape of technology, developers require laptops that ca
 
 ## 1. MacBook Pro (M2X Chip)
 
-Apple has consistently delivered high-performance laptops for developers, and the MacBook Pro with the M2X chip is no exception. With its blazing-fast processor, ample RAM, and stunning Retina display, it's a dream machine for coding. The improved battery life ensures you can code for hours without interruption. Plus, macOS offers a Unix-based environment, perfect for software development.
+Apple - has consistently delivered high-performance laptops for developers, and the MacBook Pro with the M2X chip is no exception. With its blazing-fast processor, ample RAM, and stunning Retina display, it's a dream machine for coding. The improved battery life ensures you can code for hours without interruption. Plus, macOS offers a Unix-based environment, perfect for software development.
 
 ## 2. Dell XPS 17
 

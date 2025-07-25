@@ -1,5 +1,5 @@
 async function getMod() {
-						return import('./best-laptops-for-developers_DuXf_cbo.mjs');
+						return import('./best-laptops-for-developers_CixVsjbk.mjs');
 					}
 					const collectedLinks = [];
 					const collectedStyles = [];
