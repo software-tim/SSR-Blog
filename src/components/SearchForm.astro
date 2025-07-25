@@ -242,7 +242,7 @@ class EnhancedSearch {
         type: this.searchType.value
       });
 
-      const response = await fetch(`http://localhost:3001/api/search?${searchParams}`);
+      const response = await fetch(`/api/search?${searchParams}`);
       
       if (!response.ok) {
         throw new Error(`Search failed: ${response.statusText}`);
@@ -265,7 +265,7 @@ class EnhancedSearch {
 
   private async getSuggestions(query: string): Promise<void> {
     try {
-      const response = await fetch(`http://localhost:3001/api/suggestions?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}`);
       if (response.ok) {
         const data = await response.json();
         this.showSuggestions(data.suggestions || []);
